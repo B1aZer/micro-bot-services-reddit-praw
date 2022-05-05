@@ -1,0 +1,2 @@
+quart==0.17.0
+asyncpraw==7.5.0
