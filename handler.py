@@ -9,8 +9,8 @@ import random
 import asyncio
 from quart import Quart, jsonify, request
 
-NUMBER_OF_CACHED_IMAGES = 10
-NUMBER_OF_POSTS_TO_FETCH = 5
+NUMBER_OF_CACHED_IMAGES = 5
+NUMBER_OF_POSTS_TO_FETCH = 50
 
 app = Quart(__name__)
 motivators_cached = []
@@ -25,14 +25,14 @@ image_extensions = ('.jpg', '.png', '.svg', '.jpeg', '.tif', '.tiff')
 random.shuffle(motivator_subreddits)
 
 # TODO: only images
-async def fetch_motivators():
+async def fetch_motivators(subreddits):
     print('fetch')
     with asyncpraw.Reddit(
         client_id="PTDWkgFFaCdNzEvpgQUXJw",
         client_secret="kl2pLpSFlDDHdSBVJjRNFfkn7WmF-A",
         user_agent="GooDeeBot",
     ) as reddit:
-        for subreddit in motivator_subreddits:
+        for subreddit in subreddits:
             subreddit_aw = await reddit.subreddit(subreddit)
             print(f'fetch {subreddit}')
             async for submission in subreddit_aw.top("all", limit=NUMBER_OF_POSTS_TO_FETCH):
@@ -40,21 +40,28 @@ async def fetch_motivators():
                 if submission.url.endswith(image_extensions):
                     print(f'yield url {submission.url}')
                     yield submission
-                    #motivators_cached.append(submission)
 
 
-async def generate_motivators():
-    async_generator = fetch_motivators()
+async def generate_motivators(async_generator):
+    if (len(motivators_cached) >= NUMBER_OF_CACHED_IMAGES):
+        return
     post = await async_generator.__anext__()
     print(post.title)
     motivators_cached.append(post)
+
+
+async def check_motivators():
+    async_generator = fetch_motivators(motivator_subreddits)
+    while(True):
+        await generate_motivators(async_generator)
+        await asyncio.sleep(1)
 
 
 @app.route("/")
 async def hello():
     # return await render_template("index.html")
     #app.add_background_task(generate_motivators)
-    await generate_motivators()
+    #await check_motivators()
     return "hello"
 
 
@@ -69,14 +76,14 @@ async def json():
 
 @app.before_serving
 async def startup():
-    pass
-    #app.background_task = asyncio.ensure_future(generate_motivators())
+    #pass
+    app.background_task = asyncio.ensure_future(check_motivators())
 
 
 @app.after_serving
 async def shutdown():
-    pass
-    #app.background_task.cancel()
+    #pass
+    app.background_task.cancel()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3031)
