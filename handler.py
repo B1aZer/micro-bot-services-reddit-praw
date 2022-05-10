@@ -9,8 +9,8 @@ import random
 import asyncio
 from quart import Quart, jsonify, request
 
-NUMBER_OF_CACHED_IMAGES = 2 #100 #5 test
-NUMBER_OF_POSTS_TO_FETCH = 2 #1000 #50 test
+NUMBER_OF_CACHED_IMAGES = 5  # 100 #5 test
+NUMBER_OF_POSTS_TO_FETCH = 50  # 1000 #50 test
 
 app = Quart(__name__)
 motivators_cached = []
@@ -26,13 +26,18 @@ random.shuffle(motivator_subreddits)
 
 
 async def create_generator_from(subreddits):
-    print('fetch')
     with asyncpraw.Reddit(
         client_id="PTDWkgFFaCdNzEvpgQUXJw",
         client_secret="kl2pLpSFlDDHdSBVJjRNFfkn7WmF-A",
         user_agent="GooDeeBot",
     ) as reddit:
-        for subreddit in subreddits:
+        # for subreddit in subreddits:
+        i = 0
+        while(True):
+            subreddit = subreddits[i % len(subreddits)]
+            # TODO: overflow
+            i += 1
+            print(f'fetch {i} number of times')
             subreddit_aw = await reddit.subreddit(subreddit)
             print(f'fetch {subreddit}')
             async for submission in subreddit_aw.top("all", limit=NUMBER_OF_POSTS_TO_FETCH):
@@ -60,8 +65,8 @@ async def check_motivators():
 @app.route("/")
 async def hello():
     # return await render_template("index.html")
-    #app.add_background_task(fetch_posts_from)
-    #await check_motivators()
+    # app.add_background_task(fetch_posts_from)
+    # await check_motivators()
     return "hello"
 
 
