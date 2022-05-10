@@ -9,7 +9,7 @@ import random
 import asyncio
 from quart import Quart, jsonify, request
 
-NUMBER_OF_CACHED_IMAGES = 5  # 100 #5 test
+NUMBER_OF_POSTS_TO_CACHE = 5   # 100 #5 test
 NUMBER_OF_POSTS_TO_FETCH = 50  # 1000 #50 test
 
 app = Quart(__name__)
@@ -48,7 +48,7 @@ async def create_generator_from(subreddits):
 
 
 async def fetch_posts_from(async_generator):
-    if (len(motivators_cached) >= NUMBER_OF_CACHED_IMAGES):
+    if (len(motivators_cached) >= NUMBER_OF_POSTS_TO_CACHE):
         return
     post = await async_generator.__anext__()
     print(post.title)
