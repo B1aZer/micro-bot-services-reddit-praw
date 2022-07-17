@@ -3,11 +3,15 @@
 #import asyncio
 #import websockets
 #import json
+import os
 import asyncpraw
 import datetime
 import random
 import asyncio
+from dotenv import load_dotenv
 from quart import Quart, jsonify, request
+
+load_dotenv()
 
 NUMBER_OF_POSTS_TO_CACHE = 100   # 100 #prod #5 test
 NUMBER_OF_POSTS_TO_FETCH = 1000  # 1000 #prod #50 test
@@ -105,9 +109,9 @@ image_extensions = ('.jpg', '.png', '.svg', '.jpeg', '.tif', '.tiff')
 
 async def create_generator_from(subreddits):
     with asyncpraw.Reddit(
-        client_id="PTDWkgFFaCdNzEvpgQUXJw",
-        client_secret="kl2pLpSFlDDHdSBVJjRNFfkn7WmF-A",
-        user_agent="GooDeeBot",
+        client_id=os.getenv('client_id'),
+        client_secret=os.getenv('client_secret'),
+        user_agent=os.getenv('user_agent'),
     ) as reddit:
         # for subreddit in subreddits:
         i = 0
